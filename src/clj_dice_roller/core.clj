@@ -5,8 +5,9 @@
   [amount dice & {:keys [modifier] :or {modifier 0}}]
   (let [rolls (map #(inc (rand-int %)) (repeat amount dice))
         rolls+mod (map #(+ % modifier) rolls)]
-   (print rolls)
-    rolls+mod))
+   ;(print rolls)
+    (->> (map #(inc (rand-int %)) (repeat amount dice))
+          (map #(+ % modifier)))))
 
 (roll 0 6) ;; () or []
 (roll 1 6) ;; [3], 1 a 6
