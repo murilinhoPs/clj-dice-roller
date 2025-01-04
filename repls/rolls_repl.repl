@@ -1,0 +1,24 @@
+(require '[cognitect.transcriptor :as xr]
+         '[clojure.spec.alpha :as s]
+         '[clj-dice-roller.core :as dice])
+
+
+(dice/roll 0 6) ;; [1 4 6]
+(xr/check! seq?)
+
+(dice/roll 1 6)
+
+(dice/roll 3 6)
+
+(dice/roll 2 6 {:modifier 2})
+
+(dice/roll 1 0) ;; ()
+
+(dice/roll -1 6) ;; ()
+(xr/check! (s/and seq? empty?))
+
+(dice/roll 3 -1) ;; ()
+
+(dice/roll -3 -6) ;; ()
+
+(dice/roll 1 20)
