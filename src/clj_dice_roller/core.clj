@@ -1,30 +1,35 @@
 (ns clj-dice-roller.core
   (:require [clojure.string :as str]))
 
-(defn parse-rolls
-  [& args]
-  (mapv (fn [roll]
-          (->> (str/split roll #"d")
-               (mapv #(Integer/parseInt %))))
-        args))
+(defn parse-roll
+  [roll]
+  (->> (str/split roll #"d")
+       (mapv #(Integer/parseInt %))))
 
 (defn remove-strings
   [rolls]
   (mapv #(if (coll? %) (remove-strings %)  %)
         (remove string? rolls)))
 
+(defn get-roll-value "Returns only the result from the roll form this ([15] 1d20)" 
+  [roll] 
+  (first roll))
+
 (defn roll
   "Rolls some dice, like (roll 3 6) would be three d6."
-  [amount dice & {:keys [modifier] :or {modifier 0}}]
-  (->>  (mapv #(inc (rand-int %)) (filter pos-int? (repeat amount dice)))
-        (mapv #(+ % modifier))))
+  [amount dice & {:keys [modifier]}]
+  (let [result (->> (mapv #(inc (rand-int %)) (filter pos-int? (repeat amount dice))) 
+                  (mapv #(+ % (or modifier 0))))
+        print-dice (str amount "d" dice)
+        print-mod (when modifier (str "+" modifier))]
+    (remove nil? [result print-dice print-mod])))
 
 (defn roll-multiple
   [& args]
   (->> (reduce (fn [acc dice]
-                 (let [parsed-dice (-> dice parse-rolls first)
+                 (let [parsed-dice (parse-roll dice)
                        roll (apply roll parsed-dice)]
-                   (conj acc [roll dice])))
+                   (conj acc [(get-roll-value roll) dice])))
                [] args)
        (mapv #(into (first %) [(second %)]))))
 
@@ -32,19 +37,19 @@
   [rolls]
   (let [remove-strs  (remove-strings rolls)
         rolls-results (reduce #(apply conj % %2) remove-strs)
-        print-rolls (if (-> rolls count (= 1)) (first rolls) rolls)] 
+        print-rolls (if (-> rolls count (= 1)) (first rolls) rolls)]
     [(reduce + rolls-results) print-rolls]))
 
 (defn roll-keep-highest
   [amount dice & {:keys [modifier] :or {modifier 0}}]
   (let [roll (roll amount dice {:modifier modifier})
-        highest (apply max roll)]
+        highest (apply max (get-roll-value roll))]
     [roll highest]))
 
 (defn roll-keep-lowest
   [amount dice & {:keys [modifier] :or {modifier 0}}]
   (let [roll (roll amount dice {:modifier modifier})
-        lowest (apply min roll)]
+        lowest (apply min (get-roll-value roll))]
     [roll lowest]))
 
 (roll-keep-highest 3 10) ;; () or []
