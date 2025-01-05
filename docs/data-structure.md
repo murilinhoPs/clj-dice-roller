@@ -45,11 +45,12 @@ PS: o `(remove string? rolls)` retorna a coleção normal se não tiver nenhuma 
             0 
             [1 2 3 4 5]) ;; => 15
 
-Iteração 1: `acc = 0`, `x = 1` → Retorna `0 + 1 = 1`.
-Iteração 2: `acc = 1`, `x = 2` → Retorna `1 + 2 = 3`.
-Iteração 3: `acc = 3`, `x = 3` → Retorna `3 + 3 = 6`.
-Iteração 4: `acc = 6`, `x = 4` → Retorna `6 + 4 = 10`.
-Iteração 5: `acc = 10`, `x = 5` → Retorna `10 + 5 = 15`.
+- Iteração 1: `acc = 0`, `x = 1` → Retorna `0 + 1 = 1`.
+
+- Iteração 2: `acc = 1`, `x = 2` → Retorna `1 + 2 = 3`.
+- Iteração 3: `acc = 3`, `x = 3` → Retorna `3 + 3 = 6`.
+- Iteração 4: `acc = 6`, `x = 4` → Retorna `6 + 4 = 10`.
+- Iteração 5: `acc = 10`, `x = 5` → Retorna `10 + 5 = 15`.
 
 -----
 
@@ -68,7 +69,7 @@ Iteração 5: `acc = 10`, `x = 5` → Retorna `10 + 5 = 15`.
                     [] args)
             (mapv #(into (first %) [(second %)])))) ;;*  junta os resultados de cada dado em um único array -> [[2 4 3 "3d4"] [5 "1d6"]]
 
------ 
+-----
 
 - **Somar as rolagens**, `2d4 + 1d8 = 10 [4 2 "2d4"] [4 "1d8"]`: Preciso remover os strings da coll que seriam os dados `"2d4"  "1d8"` para juntar **apenas** os resultados das rolagens num único array. O `print-rolls` é só o que vou retornar  `[[2 4 "2d4"] [6 "1d8"]]`
 
