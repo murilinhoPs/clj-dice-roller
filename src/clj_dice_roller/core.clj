@@ -22,9 +22,9 @@
         print-rolls (if (-> rolls count (= 1)) (first rolls) rolls)]
     [(reduce + rolls-results) print-rolls]))
 
-(defn get-roll-value "Returns only the result from the roll form this ([15] 1d20)"
-  [roll]
-  (first roll))
+(defn get-roll-value 
+  "Returns only the result from the roll form this ([15] 1d20)"
+  [roll] (first roll))
 
 (defn roll
   "Rolls some dice, like (roll 3 6) would be three d6."
