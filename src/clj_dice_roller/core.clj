@@ -45,6 +45,7 @@
            (mapv #(into (first %) [(second %)])))
       (sum-multiple-rolls)))
 
+;;? [[4 4 4 "3d4"] [5 "1d8"]]
 ;;* input -> "1d4" + 1 + "2d6" + 2 OU "1d4" + "2d6" + "3"
 
 (defn roll-keep-highest
