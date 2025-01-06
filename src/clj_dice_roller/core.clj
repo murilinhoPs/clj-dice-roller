@@ -1,8 +1,6 @@
 (ns clj-dice-roller.core
   (:require [clojure.string :as str]))
 
-;;* add modifier to multiple rolls
-;;* format roll-multiple output like rollem
 ;;TODO: logic to choose between fn, if it should call roll, roll-multiple, or advantage and disavantage roll
 
 (defn parse-roll
