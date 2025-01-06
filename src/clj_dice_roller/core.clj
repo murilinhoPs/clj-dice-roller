@@ -32,10 +32,11 @@
   "Returns only the result from the roll form this ([15] 1d20)"
   [roll] (first roll))
 
-(defn ^:private  roll
+(defn ^:private roll
   "Rolls some dice, like (roll 3 6) would be three d6."
-  [amount dice & {:keys [modifier]}]
-  (let [result (mapv #(inc (rand-int %)) (filter pos-int? (repeat amount dice)))
+  [roll & {:keys [modifier]}]
+  (let [[amount dice] (parse-roll roll)
+        result (mapv #(inc (rand-int %)) (filter pos-int? (repeat amount dice)))
         result+mod (when modifier (->> result (mapv #(+ % modifier))))
         print-mod (when modifier (str "+" modifier))
         print-dice (str amount "d" dice)]
@@ -47,25 +48,20 @@
         optional-args (when optional? (last args))
         regular-args (if optional? (butlast args) args)
         {:keys [modifier]} optional-args]
-    (-> (->> (reduce (fn [acc dice]
-                       (let [parsed-dice (parse-roll dice)
-                             dice-values (if (-> parsed-dice count (= 1)) (conj parsed-dice 1) parsed-dice)
-                             roll-result (apply roll dice-values)]
-                         (print (count dice-values))
-                         (conj acc [(get-roll-value roll-result) dice])))
+    (-> (->> (reduce #(conj % [(-> %2 roll get-roll-value) %2])
                      [] regular-args)
              (mapv #(into (first %) [(second %)])))
         (sum-multiple-rolls {:modifier modifier}))))
 
 (defn roll-keep-highest
-  [amount dice & {:keys [modifier]}]
-  (let [roll (roll amount dice {:modifier modifier})
+  [args & {:keys [modifier]}]
+  (let [roll (roll args {:modifier modifier})
         highest (apply max (get-roll-value roll))]
     [highest roll]))
 
 (defn roll-keep-lowest
-  [amount dice & {:keys [modifier]}]
-  (let [roll (roll amount dice {:modifier modifier})
+  [args & {:keys [modifier]}]
+  (let [roll (roll args {:modifier modifier})
         lowest (apply min (get-roll-value roll))]
     [lowest roll]))
 
