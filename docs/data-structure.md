@@ -86,3 +86,23 @@ PS: o `(remove string? rolls)` retorna a coleção normal se não tiver nenhuma 
             [(reduce + rolls-results) print-rolls]))
 
 - numa *lambda*, o `%` representa o primeiro argumento passado para ela e `%2` o segundo elemento da função *lambda*
+
+-----
+
+- Modifier on roll-multiple without schema
+
+    ```clojure
+    (defn roll-multiple
+      [& args]
+      (let [optional? (-> args last map?) ;;TODO: change this check when add schemas, checo se o ultimo arg é um mapa
+              optional-args (when optional? (last args));;* se for um mapa o ultimo arg, quer dizer que tem o :modifier
+              regular-args (if optional? (butlast args) args);;* se tiver o optional? eu pego todos os elementos exceto o último dos args, se não passo o plain args
+              {:keys [modifier]} optional-args];;* pego o último arg, que é o :modifier
+          (print modifier)
+      (-> (->> (reduce (fn [acc dice]
+                          (let [parsed-dice (parse-roll dice)
+                              roll-result (apply roll parsed-dice)]
+                          (conj acc [(get-roll-value roll-result) dice])))
+                      [] regular-args)
+              (mapv #(into (first %) [(second %)])))
+          (sum-multiple-rolls {:modifier modifier}))))

@@ -16,11 +16,16 @@
         (remove string? rolls)))
 
 (defn ^:private sum-multiple-rolls
-  [rolls]
+  [rolls & {:keys [modifier]}]
   (let [remove-strs  (remove-strings rolls)
-        rolls-results (reduce #(apply conj % %2) remove-strs)
-        print-rolls (if (-> rolls count (= 1)) (first rolls) rolls)]
-    [(reduce + rolls-results) print-rolls]))
+        rolls-result (->> (reduce #(apply conj % %2) remove-strs) (reduce +))
+        rolls-result+mod (when modifier (+ modifier rolls-result))
+        print-mod (when modifier (str "+" modifier))
+        print-rolls (if (-> rolls count (= 1)) (first rolls) rolls)
+        print-rolls-result (if modifier rolls-result (str rolls-result " <-"))
+        print-rolls-result+mod (when modifier (str  rolls-result+mod " <-"))]
+    (print rolls-result)
+    (remove nil? [print-rolls-result+mod print-rolls-result  print-rolls print-mod])))
 
 (defn get-roll-value
   "Returns only the result from the roll form this ([15] 1d20)"
@@ -37,18 +42,17 @@
 
 (defn roll-multiple
   [& args]
-  (let [optional? (-> args last map?) ;;TODO: change this check when add schemas
-        optional-args (when optional? (last args)) 
-        regular-args (if optional? (butlast args) args)
-        {:keys [modifier]} optional-args]
-    (print modifier)
-   (-> (->> (reduce (fn [acc dice]
-                     (let [parsed-dice (parse-roll dice)
-                           roll (apply roll parsed-dice)]
-                       (conj acc [(get-roll-value roll) dice])))
-                   [] regular-args)
-           (mapv #(into (first %) [(second %)])))
-      (sum-multiple-rolls))))
+  (let [optional? (-> args last map?) ;;TODO: change this check when add schemas, checo se o ultimo arg é um mapa
+        optional-args (when optional? (last args));;* se for um mapa o ultimo arg, quer dizer que tem o :modifier
+        regular-args (if optional? (butlast args) args);;* se tiver o optional? eu pego todos os elementos exceto o último dos args, se não passo o plain args
+        {:keys [modifier]} optional-args];;* pego o último arg, que é o :modifier
+    (-> (->> (reduce (fn [acc dice]
+                       (let [parsed-dice (parse-roll dice)
+                             roll-result (apply roll parsed-dice)]
+                         (conj acc [(get-roll-value roll-result) dice])))
+                     [] regular-args)
+             (mapv #(into (first %) [(second %)])))
+        (sum-multiple-rolls {:modifier modifier}))))
 
 ;;? [[4 4 4 "3d4"] [5 "1d8"]]
 ;;* input -> "1d4" + 1 + "2d6" + 2 OU "1d4" + "2d6" + "3"
