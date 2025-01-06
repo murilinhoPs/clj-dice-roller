@@ -1,14 +1,17 @@
 (ns clj-dice-roller.core
   (:require [clojure.string :as str]))
 
-;;TODO: add modifier to multiple rolls
-;;TODO: format roll-multiple output like rollem
+;;* add modifier to multiple rolls
+;;* format roll-multiple output like rollem
 ;;TODO: logic to choose between fn, if it should call roll, roll-multiple, or advantage and disavantage roll
 
 (defn parse-roll
   [roll]
-  (->> (str/split roll #"d")
-       (mapv #(Integer/parseInt %))))
+  (let [parse-fn #(if (-> roll first (= \d))
+                    (-> (str/replace % #"d" "1d") (str/split #"d"))
+                    (str/split % #"d"))]
+    (->> (parse-fn roll)
+         (mapv #(Integer/parseInt %)))))
 
 (defn remove-strings
   [rolls]
@@ -25,11 +28,11 @@
         print-result+mod (when modifier (str result+mod " <-"))]
     (remove nil? [print-result+mod print-result print-dice print-mod])))
 
-(defn get-roll-value
+(defn ^:private  get-roll-value
   "Returns only the result from the roll form this ([15] 1d20)"
   [roll] (first roll))
 
-(defn roll
+(defn ^:private  roll
   "Rolls some dice, like (roll 3 6) would be three d6."
   [amount dice & {:keys [modifier]}]
   (let [result (mapv #(inc (rand-int %)) (filter pos-int? (repeat amount dice)))
@@ -40,32 +43,31 @@
 
 (defn roll-multiple
   [& args]
-  (let [optional? (-> args last map?) ;;TODO: change this check when add schemas, checo se o ultimo arg é um mapa
-        optional-args (when optional? (last args));;* se for um mapa o ultimo arg, quer dizer que tem o :modifier
-        regular-args (if optional? (butlast args) args);;* se tiver o optional? eu pego todos os elementos exceto o último dos args, se não passo o plain args
-        {:keys [modifier]} optional-args];;* pego o último arg, que é o :modifier
+  (let [optional? (-> args last map?)
+        optional-args (when optional? (last args))
+        regular-args (if optional? (butlast args) args)
+        {:keys [modifier]} optional-args]
     (-> (->> (reduce (fn [acc dice]
                        (let [parsed-dice (parse-roll dice)
-                             roll-result (apply roll parsed-dice)]
+                             dice-values (if (-> parsed-dice count (= 1)) (conj parsed-dice 1) parsed-dice)
+                             roll-result (apply roll dice-values)]
+                         (print (count dice-values))
                          (conj acc [(get-roll-value roll-result) dice])))
                      [] regular-args)
              (mapv #(into (first %) [(second %)])))
         (sum-multiple-rolls {:modifier modifier}))))
 
-;;? [[4 4 4 "3d4"] [5 "1d8"]]
-;;* input -> "1d4" + 1 + "2d6" + 2 OU "1d4" + "2d6" + "3"
-
 (defn roll-keep-highest
-  [amount dice & {:keys [modifier] :or {modifier 0}}]
+  [amount dice & {:keys [modifier]}]
   (let [roll (roll amount dice {:modifier modifier})
         highest (apply max (get-roll-value roll))]
-    [roll highest]))
+    [highest roll]))
 
 (defn roll-keep-lowest
-  [amount dice & {:keys [modifier] :or {modifier 0}}]
+  [amount dice & {:keys [modifier]}]
   (let [roll (roll amount dice {:modifier modifier})
         lowest (apply min (get-roll-value roll))]
-    [roll lowest]))
+    [lowest roll]))
 
 (roll-keep-highest 3 10) ;; () or []
 (roll-keep-lowest 3 6) ;; [3], 1 a 6a
