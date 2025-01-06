@@ -37,13 +37,18 @@
 
 (defn roll-multiple
   [& args]
-  (-> (->> (reduce (fn [acc dice]
+  (let [optional? (-> args last map?) ;;TODO: change this check when add schemas
+        optional-args (when optional? (last args)) 
+        regular-args (if optional? (butlast args) args)
+        {:keys [modifier]} optional-args]
+    (print modifier)
+   (-> (->> (reduce (fn [acc dice]
                      (let [parsed-dice (parse-roll dice)
                            roll (apply roll parsed-dice)]
                        (conj acc [(get-roll-value roll) dice])))
-                   [] args)
+                   [] regular-args)
            (mapv #(into (first %) [(second %)])))
-      (sum-multiple-rolls)))
+      (sum-multiple-rolls))))
 
 ;;? [[4 4 4 "3d4"] [5 "1d8"]]
 ;;* input -> "1d4" + 1 + "2d6" + 2 OU "1d4" + "2d6" + "3"
