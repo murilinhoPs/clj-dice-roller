@@ -7,7 +7,7 @@
 
 (defn parse-roll
   [roll]
-  (let [parse-fn #(if (-> roll first (= \d))
+  (let [parse-fn #(if (str/starts-with? roll "d")
                     (-> (str/replace % #"d" "1d") (str/split #"d"))
                     (str/split % #"d"))]
     (->> (parse-fn roll)
