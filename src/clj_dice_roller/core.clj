@@ -22,18 +22,18 @@
         print-rolls (if (-> rolls count (= 1)) (first rolls) rolls)]
     [(reduce + rolls-results) print-rolls]))
 
-(defn get-roll-value 
+(defn get-roll-value
   "Returns only the result from the roll form this ([15] 1d20)"
   [roll] (first roll))
 
 (defn roll
   "Rolls some dice, like (roll 3 6) would be three d6."
   [amount dice & {:keys [modifier]}]
-  (let [result (->> (mapv #(inc (rand-int %)) (filter pos-int? (repeat amount dice)))
-                    (mapv #(+ % (or modifier 0))))
-        print-dice (str amount "d" dice)
-        print-mod (when modifier (str "+" modifier))]
-    (remove nil? [result print-dice print-mod])))
+  (let [result (mapv #(inc (rand-int %)) (filter pos-int? (repeat amount dice)))
+        result+mod (when modifier (->> result (mapv #(+ % modifier))))
+        print-mod (when modifier (str "+" modifier))
+        print-dice (str amount "d" dice)]
+    (remove nil? [result+mod result print-dice print-mod])))
 
 (defn roll-multiple
   [& args]
@@ -44,6 +44,8 @@
                    [] args)
            (mapv #(into (first %) [(second %)])))
       (sum-multiple-rolls)))
+
+;;* input -> "1d4" + 1 + "2d6" + 2 OU "1d4" + "2d6" + "3"
 
 (defn roll-keep-highest
   [amount dice & {:keys [modifier] :or {modifier 0}}]
