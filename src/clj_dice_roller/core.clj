@@ -17,15 +17,13 @@
 
 (defn ^:private sum-multiple-rolls
   [rolls & {:keys [modifier]}]
-  (let [remove-strs  (remove-strings rolls)
-        rolls-result (->> (reduce #(apply conj % %2) remove-strs) (reduce +))
-        rolls-result+mod (when modifier (+ modifier rolls-result))
+  (let [result (->> (reduce #(apply conj % %2) (remove-strings rolls)) (reduce +))
+        result+mod (when modifier (+ modifier result))
         print-mod (when modifier (str "+" modifier))
-        print-rolls (if (-> rolls count (= 1)) (first rolls) rolls)
-        print-rolls-result (if modifier rolls-result (str rolls-result " <-"))
-        print-rolls-result+mod (when modifier (str  rolls-result+mod " <-"))]
-    (print rolls-result)
-    (remove nil? [print-rolls-result+mod print-rolls-result  print-rolls print-mod])))
+        print-dice (if (-> rolls count (= 1)) (first rolls) rolls)
+        print-result (if modifier result (str result " <-"))
+        print-result+mod (when modifier (str result+mod " <-"))]
+    (remove nil? [print-result+mod print-result print-dice print-mod])))
 
 (defn get-roll-value
   "Returns only the result from the roll form this ([15] 1d20)"
