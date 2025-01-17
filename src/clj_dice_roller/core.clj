@@ -16,29 +16,45 @@
   (mapv #(if (coll? %) (remove-strings %)  %)
         (remove string? rolls)))
 
+(defn ^:private  get-roll-value
+  "Returns only the result from the roll form this ([15] 1d20)"
+  [roll] (first roll))
+
+(defn ^:private  get-modifier-value
+  "Returns only the value (number) from modifier (+ 3), gets 3"
+  [modifier] (second modifier))
+
+(defn ^:private roll-operation
+  [roll modifier]
+  (when modifier
+    (let [modfier-value (-> modifier (subs 1) str Integer/parseInt)
+          math-operation ((-> modifier first str symbol resolve) roll modfier-value)]
+      (println modfier-value)
+      (print math-operation)
+      [math-operation modifier])))
+
 (defn ^:private sum-multiple-rolls
   [rolls & {:keys [modifier]}]
   (let [result (->> (reduce #(apply conj % %2) (remove-strings rolls)) (reduce +))
         result+mod (when modifier (+ modifier result))
-        print-mod (when modifier (str "+" modifier))
+        print-mod (when modifier (str "+" modifier)) ;;TODO: change modifier to string
         print-dice (if (-> rolls count (= 1)) (first rolls) rolls)
         print-result (if modifier result (str result " <-"))
         print-result+mod (when modifier (str result+mod " <-"))]
     (remove nil? [print-result+mod print-result print-dice print-mod])))
 
-(defn ^:private  get-roll-value
-  "Returns only the result from the roll form this ([15] 1d20)"
-  [roll] (first roll))
-
-(defn ^:private roll
+(defn ^:private roll ;;TODO: add parser for other arithmetic functions (- * /)
   "Rolls some dice, like (roll 3 6) would be three d6."
   [roll & {:keys [modifier]}]
   (let [[amount dice] (parse-roll roll)
-        result (mapv #(inc (rand-int %)) (filter pos-int? (repeat amount dice)))
-        result+mod (when modifier (->> result (mapv #(+ % modifier))))
-        print-mod (when modifier (str "+" modifier))
+        roll-result (mapv #(inc (rand-int %)) (filter pos-int? (repeat amount dice)))
+       ; [result+mod print-mod] (roll-operation roll-result modifier)
+        [result+mod print-mod] (when modifier (->> roll-result (mapv #(roll-operation % modifier)))) ;;TODO: criar uma função para a operação
+        ;print-mod (when modifier (str "+" modifier)) ;;TODO: mudar string de acordo com a operação
         print-dice (str amount "d" dice)]
-    (remove nil? [result+mod result print-dice print-mod])))
+    (println print-mod)
+    (println result+mod)
+    (remove nil? [result+mod roll-result print-dice print-mod])))
 
 (defn roll-multiple
   [& args]
@@ -63,16 +79,16 @@
         lowest (apply min (get-roll-value roll))]
     [lowest roll]))
 
-(roll-keep-highest 3 10) ;; () or []
-(roll-keep-lowest 3 6) ;; [3], 1 a 6a
-(roll 0 6) ;; [1 4 6]
-(roll 1 6)
-(roll 3 6)
-(roll 2 6 {:modifier 2})
-(roll 1 0) ;; ()
-(roll -1 6) ;; ()
-(roll 3 -1) ;; ()
-(roll -3 -6) ;; ()
-(roll 1 20)
-(roll-multiple "3d4") ;; [6 [1 1 4 "3d4"]]
-(roll-multiple "3d4" "1d6") ;; [10 [[3 3 2 "3d4"] [2 "1d6"]]]
+;; (roll-keep-highest 3 10) ;; () or []
+;; (roll-keep-lowest 3 6) ;; [3], 1 a 6a
+;; (roll 0 6) ;; [1 4 6]
+;; (roll 1 6)
+;; (roll 3 6)
+;; (roll 2 6 {:modifier 2})
+;; (roll 1 0) ;; ()
+;; (roll -1 6) ;; ()
+;; (roll 3 -1) ;; ()
+;; (roll -3 -6) ;; ()
+;; (roll 1 20)
+;; (roll-multiple "3d4") ;; [6 [1 1 4 "3d4"]]
+;; (roll-multiple "3d4" "1d6") ;; [10 [[3 3 2 "3d4"] [2 "1d6"]]]
