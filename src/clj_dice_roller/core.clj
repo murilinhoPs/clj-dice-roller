@@ -21,7 +21,9 @@
   [roll] (first roll))
 
 (defn ^:private  get-modifier-value
-  "Returns only the value (number) from modifier (+ 3), gets 3"
+  "Returns only the value (number) from modifier (+ 3), gets 3.
+   subs: a substring of modifier starting from index 1, index 0
+   is the math-symbol (+, -, *, /)"
   [modifier] (subs modifier 1))
 
 (defn ^:private roll-operation
