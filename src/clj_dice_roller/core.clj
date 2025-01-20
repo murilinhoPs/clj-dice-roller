@@ -22,39 +22,32 @@
 
 (defn ^:private  get-modifier-value
   "Returns only the value (number) from modifier (+ 3), gets 3"
-  [modifier] (second modifier))
+  [modifier] (subs modifier 1))
 
 (defn ^:private roll-operation
   [roll modifier]
-  (when modifier
-    (let [modfier-value (-> modifier (subs 1) str Integer/parseInt)
-          math-operation ((-> modifier first str symbol resolve) roll modfier-value)]
-      (println modfier-value)
-      (print math-operation)
-      [math-operation modifier])))
+  (when modifier 
+    (let [modfier-value (-> modifier get-modifier-value str Integer/parseInt) 
+          operation-restult ((-> modifier first str symbol resolve) roll modfier-value)]
+      operation-restult)))
 
 (defn ^:private sum-multiple-rolls
   [rolls & {:keys [modifier]}]
   (let [result (->> (reduce #(apply conj % %2) (remove-strings rolls)) (reduce +))
-        result+mod (when modifier (+ modifier result))
-        print-mod (when modifier (str "+" modifier)) ;;TODO: change modifier to string
+        result+mod (when modifier (roll-operation result modifier))
         print-dice (if (-> rolls count (= 1)) (first rolls) rolls)
         print-result (if modifier result (str result " <-"))
         print-result+mod (when modifier (str result+mod " <-"))]
-    (remove nil? [print-result+mod print-result print-dice print-mod])))
+    (remove nil? [print-result+mod print-result print-dice modifier])))
 
-(defn ^:private roll ;;TODO: add parser for other arithmetic functions (- * /)
+(defn ^:private roll
   "Rolls some dice, like (roll 3 6) would be three d6."
   [roll & {:keys [modifier]}]
   (let [[amount dice] (parse-roll roll)
         roll-result (mapv #(inc (rand-int %)) (filter pos-int? (repeat amount dice)))
-       ; [result+mod print-mod] (roll-operation roll-result modifier)
-        [result+mod print-mod] (when modifier (->> roll-result (mapv #(roll-operation % modifier)))) ;;TODO: criar uma função para a operação
-        ;print-mod (when modifier (str "+" modifier)) ;;TODO: mudar string de acordo com a operação
-        print-dice (str amount "d" dice)]
-    (println print-mod)
-    (println result+mod)
-    (remove nil? [result+mod roll-result print-dice print-mod])))
+        result+mod (when modifier (->> roll-result (mapv #(roll-operation % modifier))))
+        print-result+mod (when modifier (str result+mod " <-"))]
+    (remove nil? [print-result+mod roll-result roll modifier])))
 
 (defn roll-multiple
   [& args]

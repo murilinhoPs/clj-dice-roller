@@ -106,3 +106,5 @@ PS: o `(remove string? rolls)` retorna a coleção normal se não tiver nenhuma 
                       [] regular-args)
               (mapv #(into (first %) [(second %)])))
           (sum-multiple-rolls {:modifier modifier}))))
+          
+![alt text](image.png)
